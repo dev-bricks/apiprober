@@ -42,5 +42,6 @@ include = ["ApiProber*"]
 [tool.setuptools.package-data]
 ApiProber = [
     "config.json",
+    "*.ico",
     "wordlists/*.txt",
 ]
