@@ -18,6 +18,7 @@ Created: 2026-02-21 (SQ080, Runde 34)
 import pytest
 import sys
 import json
+import os
 from pathlib import Path
 
 # Füge ApiProber-Verzeichnis zum Python-Path hinzu
@@ -117,6 +118,9 @@ class TestApiProberQuickProbe:
 
     def test_quick_probe_jsonplaceholder(self):
         """Test: Minimaler Probe gegen jsonplaceholder.typicode.com."""
+        if os.environ.get("APIPROBER_RUN_NETWORK_TESTS") != "1":
+            pytest.skip("Live-Netzwerkprobe ist opt-in mit APIPROBER_RUN_NETWORK_TESTS=1")
+
         # B36-Fix: --max-requests 5 begrenzt auf wenige Requests (verhindert 60s+ Haenger).
         # --depth 0 allein reicht NICHT, da Wordlist/Pattern-Strategien trotzdem laufen.
         # Subprocess-Timeout 90s: 5 Requests * max 30s Timeout + Retries + Overhead
@@ -155,7 +159,7 @@ class TestApiProberExport:
 
         # Prüfe ob export-md Befehl existiert (ohne API-Probe)
         result_md = subprocess.run(
-            [sys.executable, "api_prober.py", "export-md", "--help"],
+            [sys.executable, "api_prober.py", "export", "--help"],
             cwd=str(API_PROBER_DIR),
             capture_output=True,
             text=True,
@@ -163,17 +167,15 @@ class TestApiProberExport:
         )
 
         result_json = subprocess.run(
-            [sys.executable, "api_prober.py", "export-json", "--help"],
+            [sys.executable, "api_prober.py", "export", "--help"],
             cwd=str(API_PROBER_DIR),
             capture_output=True,
             text=True,
             timeout=5
         )
 
-        # --help sollte erfolgreich sein ODER Fehlermeldung bei fehlendem --help
-        # (je nach Implementierung)
-        assert result_md.returncode in [0, 1, 2]
-        assert result_json.returncode in [0, 1, 2]
+        assert result_md.returncode == 0
+        assert result_json.returncode == 0
 
 
 class TestApiProberDocumentation:

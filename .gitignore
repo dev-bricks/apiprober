@@ -4,6 +4,7 @@ PLAN_*.txt
 
 # Python
 __pycache__/
+*.pyc
 *.py[cod]
 *$py.class
 *.egg-info/
@@ -12,6 +13,7 @@ build/
 *.egg
 
 # Runtime data
+*.db
 data/
 exports/
 

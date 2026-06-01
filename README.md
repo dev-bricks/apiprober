@@ -2,13 +2,27 @@
   <img src="ApiProber_logo.jpg" alt="ApiProber" width="700">
 </p>
 
-# ApiProber -- Systematic API Discovery Tool
+# ApiProber -- Passive API Discovery and Documentation Tool
 
-Probe undocumented or poorly documented APIs. Discover endpoints through
-trial-and-error, map API structures, store results in SQLite, and generate
-documentation.
+ApiProber is a zero-dependency Python CLI for passive API discovery. It helps
+developers and maintainers map undocumented REST services, compare live
+behavior with API documentation, persist observations in SQLite, and export
+Markdown or JSON documentation.
 
 **Author:** Lukas Geiger | **License:** MIT | **Python:** 3.8+ (stdlib only)
+
+---
+
+## Best Fit
+
+- Internal REST services where no OpenAPI file exists
+- Legacy APIs that need lightweight endpoint documentation
+- Documentation audits where live behavior should be compared with expected routes
+- Local-first reconnaissance before writing a proper client or SDK
+- Passive security review with explicit authorization
+
+ApiProber is not an exploit framework, vulnerability scanner, load tester, or
+fuzzer. Use it only on APIs you own or are allowed to assess.
 
 ---
 
@@ -32,11 +46,11 @@ documentation.
 No installation required -- works with Python 3.8+ standard library only.
 
 ```bash
-git clone https://github.com/lukisch/apiprober.git
+git clone https://github.com/dev-bricks/apiprober.git
 cd apiprober
 
-# Run directly
-python -m ApiProber --help
+# Run directly from the repository root
+python api_prober.py --help
 
 # Or install as package
 pip install -e .
@@ -51,47 +65,47 @@ apiprober --help
 
 ```bash
 # Basic probe
-python -m ApiProber probe https://jsonplaceholder.typicode.com
+python api_prober.py probe https://jsonplaceholder.typicode.com
 
 # Deep probe with custom delay
-python -m ApiProber probe https://api.example.com --depth 2 --delay-ms 1000
+python api_prober.py probe https://api.example.com --depth 2 --delay-ms 1000
 
 # Authenticated probe
-python -m ApiProber probe https://api.example.com --auth-type bearer --auth-value "YOUR_TOKEN"
+python api_prober.py probe https://api.example.com --auth-type bearer --auth-value "YOUR_TOKEN"
 ```
 
 ### Manage Services
 
 ```bash
 # List all probed services
-python -m ApiProber list
+python api_prober.py list
 
 # Show details for a specific service
-python -m ApiProber status jsonplaceholder
+python api_prober.py status jsonplaceholder
 
 # Resume interrupted probing
-python -m ApiProber resume jsonplaceholder
+python api_prober.py resume jsonplaceholder
 ```
 
 ### Export Results
 
 ```bash
 # Export as Markdown documentation
-python -m ApiProber export jsonplaceholder --format md
+python api_prober.py export jsonplaceholder --format md
 
 # Export as JSON (OpenAPI-like)
-python -m ApiProber export jsonplaceholder --format json
+python api_prober.py export jsonplaceholder --format json
 ```
 
 ### Configuration
 
 ```bash
 # Show current config
-python -m ApiProber config --show
+python api_prober.py config --show
 
 # Set values
-python -m ApiProber config --set delay_ms 1000
-python -m ApiProber config --set auth.type bearer
+python api_prober.py config --set delay_ms 1000
+python api_prober.py config --set auth.type bearer
 ```
 
 ---
@@ -114,7 +128,7 @@ ApiProber is designed for responsible API exploration:
 - **Default: Read-only** -- Only GET, HEAD, OPTIONS (no POST/PUT/DELETE unless `--test-all-methods` flag)
 - **Built-in rate limiting** -- Configurable delay between requests
 - **robots.txt compliance** -- Automatically respects access restrictions
-- **Transparent User-Agent** -- `ApiProber/0.1 (github.com/lukisch; passive-discovery)`
+- **Transparent User-Agent** -- `ApiProber/0.1 (github.com/dev-bricks/apiprober; passive-discovery)`
 - **No fuzzing, no exploitation** -- Purely passive discovery
 
 ---
@@ -154,11 +168,19 @@ ApiProber/
 
 ## Use Cases
 
-- **Reverse engineering** undocumented internal APIs
+- **Documenting** undocumented internal APIs
 - **Validating** API documentation against actual behavior
-- **Discovering** hidden endpoints in third-party services
+- **Finding** reachable endpoints in systems you are authorized to assess
 - **Generating** API documentation for legacy systems
-- **Security auditing** (passive reconnaissance only)
+- **Security auditing** through passive reconnaissance only
+
+---
+
+## Discoverability Keywords
+
+`passive API discovery`, `REST API documentation generator`, `OpenAPI detection`,
+`HATEOAS link crawler`, `local-first API reconnaissance`, `zero-dependency Python
+CLI`, `SQLite API inventory`, `ethical API probing`
 
 ---
 
@@ -168,17 +190,36 @@ MIT License. See [LICENSE](LICENSE).
 
 ---
 
+## Development
+
+Run the local smoke tests without live network probing:
+
+```bash
+python -m pytest -q
+python -m compileall -q .
+```
+
+The live `jsonplaceholder.typicode.com` probe is opt-in for manual checks:
+
+```bash
+set APIPROBER_RUN_NETWORK_TESTS=1
+python -m pytest -q test_smoke.py
+```
+
+---
+
 ## Author
 
 Lukas Geiger -- [github.com/lukisch](https://github.com/lukisch)
+
+Repository -- [dev-bricks/apiprober](https://github.com/dev-bricks/apiprober)
 
 ---
 
 ## Haftung / Liability
 
-Dieses Projekt ist eine **unentgeltliche Open-Source-Schenkung** im Sinne der §§ 516 ff. BGB. Die Haftung des Urhebers ist gemäß **§ 521 BGB** auf **Vorsatz und grobe Fahrlässigkeit** beschränkt. Ergänzend gelten die Haftungsausschlüsse aus GPL-3.0 / MIT / Apache-2.0 §§ 15–16 (je nach gewählter Lizenz).
+Dieses Projekt ist eine **unentgeltliche Open-Source-Schenkung** im Sinne der §§ 516 ff. BGB. Die Haftung des Urhebers ist gemäß **§ 521 BGB** auf **Vorsatz und grobe Fahrlässigkeit** beschränkt. Ergänzend gelten die Haftungsausschlüsse aus der MIT-Lizenz.
 
 Nutzung auf eigenes Risiko. Keine Wartungszusage, keine Verfügbarkeitsgarantie, keine Gewähr für Fehlerfreiheit oder Eignung für einen bestimmten Zweck.
 
 This project is an unpaid open-source donation. Liability is limited to intent and gross negligence (§ 521 German Civil Code). Use at your own risk. No warranty, no maintenance guarantee, no fitness-for-purpose assumed.
-

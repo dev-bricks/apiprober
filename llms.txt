@@ -1,0 +1,70 @@
+# ApiProber
+
+> Passive API discovery and documentation CLI for undocumented REST services.
+
+Canonical repository: https://github.com/dev-bricks/apiprober
+Owner organization: dev-bricks
+License: MIT
+Primary language: Python
+Runtime: Python 3.8+, standard library only
+
+## Summary
+
+ApiProber maps REST API surfaces through passive, rate-limited requests. It can
+detect common OpenAPI/Swagger files, probe common endpoint paths, expand
+versioned REST patterns, follow response links, persist observations in SQLite,
+and export Markdown or JSON documentation.
+
+## Intended users
+
+- Developers documenting internal or legacy REST services
+- Maintainers comparing live API behavior with existing documentation
+- Security reviewers doing authorized passive reconnaissance
+- LLM agents that need a local API inventory before generating client code
+
+## Boundaries
+
+Use ApiProber only on APIs you own or are explicitly authorized to assess. It is
+not an exploit framework, vulnerability scanner, fuzzer, credential tester, or
+load-testing tool. Default probing uses read-only HTTP methods and rate limiting.
+
+## Main interfaces
+
+- `python api_prober.py --help`
+- `python api_prober.py probe <base-url>`
+- `python api_prober.py list`
+- `python api_prober.py status <service>`
+- `python api_prober.py export <service> --format md`
+- `python api_prober.py export <service> --format json`
+
+## Key files
+
+- `README.md`: human-facing overview, quickstart, ethics, and use cases
+- `api_prober.py`: CLI entry point
+- `core/http_client.py`: HTTP client with timeout, retry, rate limiting, and User-Agent behavior
+- `core/robots.py`: robots.txt handling
+- `discovery/`: OpenAPI, wordlist, pattern, and response-driven strategies
+- `export/`: Markdown and JSON exporters
+- `wordlists/`: bundled REST/OpenAPI/auth/admin path lists
+- `test_smoke.py`: smoke tests for imports, CLI, database, probing, and export commands
+
+## Verification
+
+Local non-network checks:
+
+```bash
+python -m pytest -q test_smoke.py -k "not quick_probe"
+python -m compileall -q .
+```
+
+Optional live smoke:
+
+```bash
+python api_prober.py probe https://jsonplaceholder.typicode.com --depth 0 --delay-ms 0 --max-requests 5
+```
+
+## Search keywords
+
+passive API discovery, REST API documentation generator, OpenAPI detection,
+HATEOAS link crawler, local-first API reconnaissance, zero-dependency Python CLI,
+SQLite API inventory, ethical API probing

@@ -5,14 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "apiprober"
 version = "0.1.0"
-description = "Systematic API probing tool for undocumented or poorly documented services"
+description = "Passive API discovery and documentation CLI for undocumented REST services"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.8"
 authors = [
     {name = "Lukas Geiger", email = "lukisch@users.noreply.github.com"},
 ]
-keywords = ["api", "probing", "discovery", "openapi", "rest", "documentation"]
+keywords = ["api", "api-discovery", "rest-api", "openapi", "documentation", "passive-reconnaissance", "sqlite", "zero-dependency"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -29,15 +29,21 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/lukisch/apiprober"
-Repository = "https://github.com/lukisch/apiprober"
-Issues = "https://github.com/lukisch/apiprober/issues"
+Homepage = "https://github.com/dev-bricks/apiprober"
+Repository = "https://github.com/dev-bricks/apiprober"
+Issues = "https://github.com/dev-bricks/apiprober/issues"
 
 [project.scripts]
 apiprober = "ApiProber.api_prober:main"
 
-[tool.setuptools.packages.find]
-include = ["ApiProber*"]
+[tool.setuptools]
+package-dir = {"ApiProber" = "."}
+packages = [
+    "ApiProber",
+    "ApiProber.core",
+    "ApiProber.discovery",
+    "ApiProber.export",
+]
 
 [tool.setuptools.package-data]
 ApiProber = [

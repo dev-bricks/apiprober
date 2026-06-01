@@ -18,7 +18,7 @@ DEFAULT_CONFIG = {
     "connect_timeout_s": 10,
     "read_timeout_s": 30,
     "max_retries": 2,
-    "user_agent": "ApiProber/0.1 (github.com/lukisch; passive-discovery)",
+    "user_agent": "ApiProber/0.1 (github.com/dev-bricks/apiprober; passive-discovery)",
     "respect_robots_txt": True,
     "skip_destructive": True,
     "strategies": ["openapi", "wordlist", "pattern", "response_driven"],
