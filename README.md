@@ -4,12 +4,26 @@
 
 # ApiProber -- Passive API Discovery and Documentation Tool
 
+[![ApiProber smoke tests](https://github.com/dev-bricks/apiprober/actions/workflows/tests.yml/badge.svg)](https://github.com/dev-bricks/apiprober/actions/workflows/tests.yml)
+
 ApiProber is a zero-dependency Python CLI for passive API discovery. It helps
 developers and maintainers map undocumented REST services, compare live
 behavior with API documentation, persist observations in SQLite, and export
 Markdown or JSON documentation.
 
 **Author:** Lukas Geiger | **License:** MIT | **Python:** 3.8+ (stdlib only)
+
+---
+
+## Start Here
+
+| Goal | Command or File |
+|---|---|
+| Try the CLI | `python api_prober.py --help` |
+| Map an authorized API | `python api_prober.py probe <base-url>` |
+| Export documentation | `python api_prober.py export <service> --format md` |
+| Read machine context | [`llms.txt`](llms.txt) |
+| Report a vulnerability privately | [`SECURITY.md`](SECURITY.md) |
 
 ---
 
@@ -180,7 +194,12 @@ ApiProber/
 
 `passive API discovery`, `REST API documentation generator`, `OpenAPI detection`,
 `HATEOAS link crawler`, `local-first API reconnaissance`, `zero-dependency Python
-CLI`, `SQLite API inventory`, `ethical API probing`
+CLI`, `SQLite API inventory`, `ethical API probing`, `authorized API inventory`,
+`REST endpoint mapper`
+
+ApiProber is unrelated to Cloudprober, probe-rs, code-search probe tools, and
+active uptime monitoring systems. Its focus is local, rate-limited REST API
+surface documentation for systems you own or are explicitly allowed to assess.
 
 ---
 

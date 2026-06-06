@@ -67,4 +67,11 @@ python api_prober.py probe https://jsonplaceholder.typicode.com --depth 0 --dela
 
 passive API discovery, REST API documentation generator, OpenAPI detection,
 HATEOAS link crawler, local-first API reconnaissance, zero-dependency Python CLI,
-SQLite API inventory, ethical API probing
+SQLite API inventory, ethical API probing, authorized API inventory, REST endpoint
+mapper, undocumented REST API documentation, local OpenAPI discovery
+
+## Disambiguation
+
+ApiProber is not Cloudprober, probe-rs, an uptime monitor, a hardware debug
+probe, or a semantic code-search engine. It is a local Python CLI for documenting
+authorized REST API surfaces with read-only probing and SQLite persistence.
