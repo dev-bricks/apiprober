@@ -1,6 +1,8 @@
 # Internal planning files
 PLAN.txt
 PLAN_*.txt
+TODO.md
+DONE.md
 
 # Python
 __pycache__/
