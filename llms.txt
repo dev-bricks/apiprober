@@ -76,4 +76,4 @@ ApiProber is not Cloudprober, probe-rs, an uptime monitor, a hardware debug
 probe, or a semantic code-search engine. It is a local Python CLI for documenting
 authorized REST API surfaces with read-only probing and SQLite persistence.
 
-## Last-checked: 2026-06-11
+## Last-checked: 2026-06-12

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-06-12
+
+- Updated the smoke-test workflow to `actions/checkout@v6` and `actions/setup-python@v6`.
+- Added Python 3.13 to the CI matrix to match the supported classifier in `pyproject.toml`.
+
 ## 2026-06-06
 
 - Added a README start table and smoke-test badge for clearer GitHub entry.
