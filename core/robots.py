@@ -17,9 +17,19 @@ class RobotsChecker:
         self._parser = urllib.robotparser.RobotFileParser()
         self._loaded = False
         self._raw_text = ""
+        # HTTP-Status wenn der robots.txt-Abruf serverseitig (5xx) scheiterte
+        self.unavailable_status = None
 
     def load(self):
-        """robots.txt laden und parsen. Gibt (success, raw_text) zurueck."""
+        """robots.txt laden und parsen. Gibt (success, raw_text) zurueck.
+
+        Verhalten nach RFC 9309:
+        - 2xx: Regeln parsen
+        - 4xx (inkl. 404): kein robots.txt vorhanden -> alles erlaubt
+        - 5xx: Server-Fehler -> konservativ ALLES gesperrt (disallow all),
+          unavailable_status wird gesetzt
+        - Netzwerkfehler: wie "kein robots.txt" (alles erlaubt)
+        """
         robots_url = f"{self.base_url}/robots.txt"
         try:
             req = urllib.request.Request(robots_url)
@@ -29,8 +39,18 @@ class RobotsChecker:
             self._parser.parse(self._raw_text.splitlines())
             self._loaded = True
             return True, self._raw_text
-        except (urllib.error.URLError, urllib.error.HTTPError, Exception):
-            # Kein robots.txt = alles erlaubt
+        except urllib.error.HTTPError as e:
+            self._parser.parse([])
+            if e.code >= 500:
+                # RFC 9309: bei Server-Fehlern sind die Regeln unbekannt
+                # -> konservativ alles sperren statt "alles erlaubt"
+                self._parser.disallow_all = True
+                self.unavailable_status = e.code
+            # 4xx (inkl. 404) = kein robots.txt = alles erlaubt
+            self._loaded = True
+            return False, ""
+        except Exception:
+            # Netzwerkfehler (DNS, Timeout, ...): kein robots.txt = alles erlaubt
             # parse([]) setzt mtime(), damit can_fetch() True liefert
             self._parser.parse([])
             self._loaded = True

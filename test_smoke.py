@@ -167,6 +167,43 @@ class TestApiProberQuickProbe:
             assert len(result.stdout) > 0, "Probe sollte Output erzeugen"
 
 
+class TestRobotsServerError:
+    """Regressionstest: 5xx beim robots.txt-Abruf darf NICHT 'alles erlaubt' bedeuten."""
+
+    def _make_checker(self, monkeypatch, status_code):
+        import urllib.error
+        parent_dir = str(API_PROBER_DIR.parent)
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+        from ApiProber.core import robots as robots_mod
+
+        def fake_urlopen(req, timeout=10):
+            raise urllib.error.HTTPError(
+                "https://example.invalid/robots.txt", status_code,
+                "error", {}, None
+            )
+
+        monkeypatch.setattr(robots_mod.urllib.request, "urlopen", fake_urlopen)
+        return robots_mod.RobotsChecker("https://example.invalid")
+
+    def test_5xx_means_disallow_all(self, monkeypatch):
+        """5xx -> konservativ: alle Pfade gesperrt (RFC 9309)."""
+        checker = self._make_checker(monkeypatch, 503)
+        success, raw = checker.load()
+        assert success is False
+        assert checker.unavailable_status == 503
+        assert checker.is_allowed("/api") is False
+        assert checker.is_allowed("/") is False
+
+    def test_404_means_everything_allowed(self, monkeypatch):
+        """404 -> kein robots.txt vorhanden -> alles erlaubt (Standard)."""
+        checker = self._make_checker(monkeypatch, 404)
+        success, raw = checker.load()
+        assert success is False
+        assert checker.unavailable_status is None
+        assert checker.is_allowed("/api") is True
+
+
 class TestApiProberExport:
     """Test: Export-Funktionen (konzeptionell)."""
 

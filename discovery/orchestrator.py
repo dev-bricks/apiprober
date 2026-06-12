@@ -72,6 +72,14 @@ class ProbeOrchestrator:
                     effective_delay = max(self.config["delay_ms"], int(crawl_delay * 1000))
                     self.client.delay_ms = effective_delay
                     print(f"  Crawl-Delay: {crawl_delay}s (effektiv: {effective_delay}ms)")
+            elif robots.unavailable_status:
+                # 5xx beim robots.txt-Abruf: Regeln unbekannt -> konservativ
+                # abbrechen statt ungeprueft zu sondieren (RFC 9309)
+                print(f"  robots.txt: Server-Fehler HTTP {robots.unavailable_status} -- "
+                      "Regeln unbekannt, konservativ alle Pfade gesperrt. Abbruch.")
+                self.db.update_probe_run(run_id, status="error")
+                return {"error": f"robots.txt nicht abrufbar (HTTP {robots.unavailable_status}), "
+                                 "konservativer Abbruch"}
             else:
                 print("  robots.txt: Nicht vorhanden (alles erlaubt)")
             print()
