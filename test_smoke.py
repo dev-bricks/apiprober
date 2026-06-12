@@ -94,23 +94,40 @@ class TestApiProberCLI:
 class TestApiProberDatabase:
     """Test: Datenbank-Funktionalität."""
 
-    def test_database_creation(self):
-        """Test: DB wird erstellt wenn nicht vorhanden."""
+    def test_default_db_path_is_in_data_dir(self):
+        """Test: Default-DB-Pfad liegt unter data/ (nicht im Projektroot)."""
+        parent_dir = str(API_PROBER_DIR.parent)
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+        from ApiProber.core.config import DEFAULT_CONFIG, get_db_path
+        from copy import deepcopy
+
+        db_path = get_db_path(deepcopy(DEFAULT_CONFIG))
+        assert db_path.parent.name == "data", \
+            f"DB sollte unter data/ liegen, ist aber: {db_path}"
+        assert db_path.name == "api_prober.db"
+
+    def test_database_creation(self, tmp_path):
+        """Test: Database legt das Schema mit allen 5 Tabellen an."""
         import sqlite3
-        db_path = API_PROBER_DIR / "api_prober.db"
+        parent_dir = str(API_PROBER_DIR.parent)
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+        from ApiProber.core.database import Database
 
-        # Falls DB existiert, OK - sonst sollte sie bei Bedarf erstellt werden
-        if db_path.exists():
-            # Prüfe Schema
-            conn = sqlite3.connect(str(db_path))
-            cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
-            tables = [row[0] for row in cursor.fetchall()]
-            conn.close()
+        db_path = tmp_path / "data" / "api_prober.db"
+        Database(db_path)  # erzeugt Verzeichnis + Schema
 
-                # Erwartete Tabellen (zumindest eine sollte existieren)
-            expected_tables = ['services', 'endpoints', 'requests', 'responses']
-            has_tables = any(t in tables for t in expected_tables)
-            assert has_tables, f"DB sollte mindestens eine Tabelle haben, gefunden: {tables}"
+        assert db_path.exists(), "DB-Datei sollte angelegt werden"
+        conn = sqlite3.connect(str(db_path))
+        cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = {row[0] for row in cursor.fetchall()}
+        conn.close()
+
+        # Reale Tabellen laut Schema (core/database.py)
+        expected_tables = {"services", "endpoints", "responses", "parameters", "probe_runs"}
+        missing = expected_tables - tables
+        assert not missing, f"Fehlende Tabellen: {missing} (gefunden: {tables})"
 
 
 class TestApiProberQuickProbe:
