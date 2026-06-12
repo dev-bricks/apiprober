@@ -7,7 +7,8 @@ import json
 import sys
 from pathlib import Path
 
-from ..core.config import load_config, get_db_path
+from ..core.config import (load_config, get_db_path, redact_config,
+                            _deep_merge, REDACTED_PLACEHOLDER)
 from ..core.database import Database
 from ..core.http_client import HttpClient
 from ..core.robots import RobotsChecker
@@ -55,7 +56,8 @@ class ProbeOrchestrator:
 
         # 1. Service in DB anlegen
         service_id = self.db.upsert_service(service_name, base_url)
-        run_id = self.db.create_probe_run(service_id, self.config)
+        # Credentials (auth.value) duerfen nie im Klartext in die DB
+        run_id = self.db.create_probe_run(service_id, redact_config(self.config))
         known_paths = self.db.get_endpoint_paths(service_id)
         endpoints_found = 0
 
@@ -290,13 +292,28 @@ class ProbeOrchestrator:
         if last_run["status"] == "completed":
             print(f"Letzter Run bereits abgeschlossen. Starte neuen Probe.")
 
-        # Config aus letztem Run laden
+        # Config aus letztem Run laden (auth.value ist dort redigiert gespeichert)
         try:
             run_config = json.loads(last_run.get("config_json", "{}"))
-            if run_config:
-                self.config.update(run_config)
         except (json.JSONDecodeError, ValueError):
-            pass
+            run_config = {}
+
+        if run_config:
+            run_auth = run_config.get("auth")
+            if isinstance(run_auth, dict) and run_auth.get("value") == REDACTED_PLACEHOLDER:
+                # Credentials werden nie persistiert -- Wert aus der aktuellen
+                # Config beziehen (config.json / config.local.json / Env)
+                current_value = self.config.get("auth", {}).get("value", "")
+                if current_value:
+                    run_auth["value"] = current_value
+                else:
+                    run_auth["value"] = ""
+                    print("  [WARN] Der gespeicherte Run nutzte Authentifizierung, aber "
+                          "in der aktuellen Config/Umgebung (APIPROBER_AUTH_VALUE) ist "
+                          "kein Auth-Wert gesetzt -- Probing laeuft ohne Auth.")
+            # Deep-Merge statt flachem update(): verschachtelte Keys wie
+            # 'auth' werden gemergt statt komplett ersetzt
+            _deep_merge(self.config, run_config)
 
         return self.probe(service["base_url"])
 

@@ -167,6 +167,77 @@ class TestApiProberQuickProbe:
             assert len(result.stdout) > 0, "Probe sollte Output erzeugen"
 
 
+class TestCredentialRedaction:
+    """Regressionstests: auth.value darf nie im Klartext in die DB gelangen."""
+
+    def _ensure_package_importable(self):
+        parent_dir = str(API_PROBER_DIR.parent)
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+
+    def test_redact_config_masks_auth_value(self):
+        """redact_config ersetzt auth.value, laesst das Original unveraendert."""
+        self._ensure_package_importable()
+        from ApiProber.core.config import redact_config, REDACTED_PLACEHOLDER
+
+        config = {"auth": {"type": "bearer", "value": "super-secret-token"}}
+        redacted = redact_config(config)
+        assert redacted["auth"]["value"] == REDACTED_PLACEHOLDER
+        assert redacted["auth"]["type"] == "bearer"
+        # Original bleibt unveraendert (deepcopy)
+        assert config["auth"]["value"] == "super-secret-token"
+
+    def test_redact_config_keeps_empty_auth_value(self):
+        """Leerer auth.value bleibt leer (kein falsches Redact-Signal)."""
+        self._ensure_package_importable()
+        from ApiProber.core.config import redact_config
+
+        config = {"auth": {"type": "none", "value": ""}}
+        assert redact_config(config)["auth"]["value"] == ""
+
+    def test_probe_run_config_contains_no_secret(self, tmp_path):
+        """In probe_runs.config_json landet der Token nicht im Klartext."""
+        self._ensure_package_importable()
+        from ApiProber.core.config import redact_config
+        from ApiProber.core.database import Database
+
+        secret = "super-secret-token"
+        db = Database(tmp_path / "test.db")
+        service_id = db.upsert_service("dummy", "https://example.invalid")
+        db.create_probe_run(service_id, redact_config(
+            {"auth": {"type": "bearer", "value": secret}}
+        ))
+        run = db.get_last_probe_run(service_id)
+        assert secret not in run["config_json"], \
+            "Token darf nicht im Klartext in probe_runs.config_json stehen"
+
+    def test_resume_restores_auth_value_from_current_config(self, tmp_path, monkeypatch):
+        """resume() ersetzt den Redaction-Platzhalter durch den aktuellen Auth-Wert."""
+        self._ensure_package_importable()
+        from copy import deepcopy
+        from ApiProber.core.config import DEFAULT_CONFIG, redact_config
+        from ApiProber.discovery.orchestrator import ProbeOrchestrator
+
+        config = deepcopy(DEFAULT_CONFIG)
+        config["db_path"] = str(tmp_path / "test.db")
+        config["auth"] = {"type": "bearer", "value": "current-token"}
+
+        orch = ProbeOrchestrator(config)
+        service_id = orch.db.upsert_service("dummy", "https://example.invalid")
+        stored = deepcopy(config)
+        stored["auth"]["value"] = "old-secret"
+        orch.db.create_probe_run(service_id, redact_config(stored))
+
+        # probe() stubben, damit kein Netzwerkzugriff passiert
+        monkeypatch.setattr(orch, "probe", lambda url, **kw: {"status": "stubbed"})
+        result = orch.resume("dummy")
+
+        assert result == {"status": "stubbed"}
+        assert orch.config["auth"]["value"] == "current-token", \
+            "resume() muss den Auth-Wert aus der aktuellen Config beziehen"
+        assert orch.config["auth"]["type"] == "bearer"
+
+
 class TestRobotsServerError:
     """Regressionstest: 5xx beim robots.txt-Abruf darf NICHT 'alles erlaubt' bedeuten."""
 

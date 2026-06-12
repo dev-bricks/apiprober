@@ -10,6 +10,9 @@ from copy import deepcopy
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Placeholder stored instead of real credentials when a config is persisted
+REDACTED_PLACEHOLDER = "***REDACTED***"
+
 DEFAULT_CONFIG = {
     "delay_ms": 500,
     "max_requests": 500,
@@ -87,6 +90,19 @@ def get_export_dir(config=None):
         config = load_config()
     export_rel = config.get("export_dir", DEFAULT_CONFIG["export_dir"])
     return BASE_DIR / export_rel
+
+
+def redact_config(config):
+    """Gibt eine Kopie der Config ohne Klartext-Credentials zurueck.
+
+    auth.value wird durch REDACTED_PLACEHOLDER ersetzt, damit Tokens und
+    Passwoerter niemals in der SQLite-DB (probe_runs.config_json) landen.
+    """
+    redacted = deepcopy(config)
+    auth = redacted.get("auth")
+    if isinstance(auth, dict) and auth.get("value"):
+        auth["value"] = REDACTED_PLACEHOLDER
+    return redacted
 
 
 def _deep_merge(base, override):
