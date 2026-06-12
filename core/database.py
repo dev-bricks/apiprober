@@ -7,7 +7,7 @@ Pattern: BACH hub/apibook.py (_ensure_table + CRUD)
 import json
 import sqlite3
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class Database:
@@ -98,7 +98,7 @@ class Database:
     def upsert_service(self, name, base_url, description="", server_header="",
                        robots_txt="", metadata=None):
         """Service anlegen oder aktualisieren. Gibt service_id zurueck."""
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         meta_json = json.dumps(metadata or {}, ensure_ascii=False)
         conn = self._connect()
         try:
@@ -150,7 +150,7 @@ class Database:
             conn.close()
 
     def update_service_last_probed(self, service_id):
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         conn = self._connect()
         try:
             conn.execute("UPDATE services SET last_probed = ? WHERE id = ?", (now, service_id))
@@ -338,7 +338,7 @@ class Database:
                 params.append(status)
                 if status in ("completed", "stopped", "error"):
                     updates.append("finished_at = ?")
-                    params.append(datetime.utcnow().isoformat())
+                    params.append(datetime.now(timezone.utc).isoformat())
             if total_requests is not None:
                 updates.append("total_requests = ?")
                 params.append(total_requests)

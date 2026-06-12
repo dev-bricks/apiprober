@@ -5,7 +5,7 @@ Generiert lesbare API-Dokumentation als .md-Datei.
 """
 import json
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 def export_markdown(db, service, output_path):
@@ -158,7 +158,7 @@ def export_markdown(db, service, output_path):
 
     # Footer
     lines.append("---")
-    lines.append(f"*Generiert von ApiProber v0.1.0 am {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}*")
+    lines.append(f"*Generiert von ApiProber v0.1.0 am {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}*")
     lines.append("")
 
     with open(output_path, "w", encoding="utf-8") as f:

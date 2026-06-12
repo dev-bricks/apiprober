@@ -5,7 +5,7 @@ Exportiert entdeckte API-Struktur als JSON.
 """
 import json
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 def export_json(db, service, output_path):
@@ -83,7 +83,7 @@ def export_json(db, service, output_path):
     # Gesamtstruktur
     export_data = {
         "apiprober_version": "0.1.0",
-        "exported_at": datetime.utcnow().isoformat(),
+        "exported_at": datetime.now(timezone.utc).isoformat(),
         "service": {
             "name": service["name"],
             "base_url": service["base_url"],
