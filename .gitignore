@@ -33,8 +33,9 @@ _private/
 .venv/
 venv/
 
-# Environment Variables
+# Environment Variables / local secrets
 .env
+config.local.json
 
 # Logs
 *.log

@@ -122,6 +122,23 @@ python api_prober.py config --set delay_ms 1000
 python api_prober.py config --set auth.type bearer
 ```
 
+### Credential Handling
+
+Credentials are kept out of the tracked `config.json` and out of the local
+SQLite database:
+
+- **Recommended:** set the environment variables `APIPROBER_AUTH_VALUE` (and
+  optionally `APIPROBER_AUTH_TYPE`). They take precedence over all config
+  files and are never written to disk.
+- `python api_prober.py config --set auth.value "TOKEN"` writes the value to
+  `config.local.json` -- a gitignored overlay file next to `config.json` --
+  never to the tracked `config.json`.
+- Config resolution order: defaults -> `config.json` -> `config.local.json`
+  -> environment variables.
+- Probe run configurations stored in the SQLite database have `auth.value`
+  redacted (`***REDACTED***`); `resume` re-reads the credential from the
+  current config or environment.
+
 ---
 
 ## Discovery Strategies
@@ -152,7 +169,8 @@ ApiProber is designed for responsible API exploration:
 ```
 ApiProber/
 +-- api_prober.py        CLI entry point
-+-- config.json          Default configuration
++-- config.json          Default configuration (no secrets)
++-- config.local.json    Local overrides incl. auth.value -- gitignored
 +-- core/                Core modules
 |   +-- config.py        Configuration management
 |   +-- database.py      SQLite persistence layer

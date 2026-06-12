@@ -5,6 +5,7 @@ Laedt, validiert und speichert Probe-Konfigurationen.
 Pattern: llmauto/core/config.py (DEFAULT + load/save + deepcopy)
 """
 import json
+import os
 from pathlib import Path
 from copy import deepcopy
 
@@ -12,6 +13,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Placeholder stored instead of real credentials when a config is persisted
 REDACTED_PLACEHOLDER = "***REDACTED***"
+
+# Gitignored overlay file for local values, especially credentials
+LOCAL_CONFIG_NAME = "config.local.json"
+
+# Environment variables take precedence over both config files
+ENV_AUTH_VALUE = "APIPROBER_AUTH_VALUE"
+ENV_AUTH_TYPE = "APIPROBER_AUTH_TYPE"
+
+# Keys that must never be written to the tracked config.json
+SECRET_KEYS = {"auth.value"}
 
 DEFAULT_CONFIG = {
     "delay_ms": 500,
@@ -51,17 +62,38 @@ DEFAULT_CONFIG = {
 
 
 def load_config(config_path=None):
-    """Laedt Konfiguration aus JSON-Datei, merged mit Defaults."""
+    """Laedt Konfiguration aus JSON-Datei, merged mit Defaults.
+
+    Reihenfolge (spaetere Quellen ueberschreiben fruehere):
+    1. DEFAULT_CONFIG
+    2. config.json (getrackt, KEINE Secrets)
+    3. config.local.json (gitignored Overlay, z.B. auth.value)
+    4. Umgebungsvariablen APIPROBER_AUTH_VALUE / APIPROBER_AUTH_TYPE
+    """
     if config_path is None:
         config_path = BASE_DIR / "config.json"
     else:
         config_path = Path(config_path)
+    local_path = config_path.parent / LOCAL_CONFIG_NAME
 
     config = deepcopy(DEFAULT_CONFIG)
     if config_path.exists():
         with open(config_path, "r", encoding="utf-8") as f:
             user_config = json.load(f)
         _deep_merge(config, user_config)
+    if local_path.exists():
+        with open(local_path, "r", encoding="utf-8") as f:
+            local_config = json.load(f)
+        _deep_merge(config, local_config)
+
+    # Environment overrides (highest precedence, never touch any file)
+    env_auth_type = os.environ.get(ENV_AUTH_TYPE)
+    if env_auth_type:
+        config.setdefault("auth", {})["type"] = env_auth_type
+    env_auth_value = os.environ.get(ENV_AUTH_VALUE)
+    if env_auth_value:
+        config.setdefault("auth", {})["value"] = env_auth_value
+
     return config
 
 
@@ -74,6 +106,46 @@ def save_config(config, config_path=None):
 
     with open(config_path, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=4, ensure_ascii=False)
+
+
+def set_config_value(key, value, config_path=None):
+    """Setzt einen Konfigurationswert persistent (Punkt-Notation moeglich).
+
+    Secrets (SECRET_KEYS, z.B. auth.value) landen in der gitignorten
+    config.local.json, alle anderen Werte in config.json. Es wird nur die
+    jeweilige Roh-Datei geschrieben -- Defaults werden NICHT zurueckgeschrieben
+    (kein Config-Drift in der getrackten Datei).
+
+    Returns:
+        Path: Datei, in die geschrieben wurde.
+    """
+    if config_path is None:
+        config_path = BASE_DIR / "config.json"
+    else:
+        config_path = Path(config_path)
+
+    if key in SECRET_KEYS:
+        target_path = config_path.parent / LOCAL_CONFIG_NAME
+    else:
+        target_path = config_path
+
+    raw = {}
+    if target_path.exists():
+        with open(target_path, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+
+    node = raw
+    parts = key.split(".")
+    for part in parts[:-1]:
+        if part not in node or not isinstance(node[part], dict):
+            node[part] = {}
+        node = node[part]
+    node[parts[-1]] = value
+
+    with open(target_path, "w", encoding="utf-8") as f:
+        json.dump(raw, f, indent=4, ensure_ascii=False)
+        f.write("\n")
+    return target_path
 
 
 def get_db_path(config=None):

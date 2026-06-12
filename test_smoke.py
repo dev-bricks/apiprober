@@ -238,6 +238,83 @@ class TestCredentialRedaction:
         assert orch.config["auth"]["type"] == "bearer"
 
 
+class TestSecretConfigStorage:
+    """Regressionstests: auth.value darf nie in die getrackte config.json."""
+
+    def _ensure_package_importable(self):
+        parent_dir = str(API_PROBER_DIR.parent)
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+
+    def test_set_auth_value_goes_to_local_file(self, tmp_path):
+        """set_config_value('auth.value', ...) schreibt nach config.local.json."""
+        self._ensure_package_importable()
+        from ApiProber.core.config import set_config_value
+
+        cfg_path = tmp_path / "config.json"
+        cfg_path.write_text('{"delay_ms": 100}\n', encoding="utf-8")
+
+        written = set_config_value("auth.value", "my-token", config_path=cfg_path)
+
+        assert written.name == "config.local.json"
+        assert "my-token" not in cfg_path.read_text(encoding="utf-8"), \
+            "Secret darf nicht in config.json landen"
+        local = json.loads((tmp_path / "config.local.json").read_text(encoding="utf-8"))
+        assert local["auth"]["value"] == "my-token"
+
+    def test_set_normal_value_goes_to_config_json(self, tmp_path):
+        """Nicht-Secrets gehen weiterhin in config.json, ohne Default-Drift."""
+        self._ensure_package_importable()
+        from ApiProber.core.config import set_config_value
+
+        cfg_path = tmp_path / "config.json"
+        cfg_path.write_text('{"delay_ms": 100}\n', encoding="utf-8")
+
+        written = set_config_value("delay_ms", 250, config_path=cfg_path)
+
+        assert written == cfg_path
+        raw = json.loads(cfg_path.read_text(encoding="utf-8"))
+        assert raw == {"delay_ms": 250}, \
+            "Nur Roh-Werte schreiben, keine gemergten Defaults (Config-Drift)"
+
+    def test_local_config_overlays_config_json(self, tmp_path, monkeypatch):
+        """config.local.json ueberlagert config.json beim Laden."""
+        self._ensure_package_importable()
+        from ApiProber.core.config import load_config
+
+        monkeypatch.delenv("APIPROBER_AUTH_VALUE", raising=False)
+        monkeypatch.delenv("APIPROBER_AUTH_TYPE", raising=False)
+
+        cfg_path = tmp_path / "config.json"
+        cfg_path.write_text('{"delay_ms": 100}\n', encoding="utf-8")
+        (tmp_path / "config.local.json").write_text(
+            '{"auth": {"type": "bearer", "value": "local-secret"}}\n',
+            encoding="utf-8"
+        )
+
+        config = load_config(cfg_path)
+        assert config["delay_ms"] == 100
+        assert config["auth"]["type"] == "bearer"
+        assert config["auth"]["value"] == "local-secret"
+
+    def test_env_var_overrides_all_config_files(self, tmp_path, monkeypatch):
+        """APIPROBER_AUTH_VALUE hat Vorrang vor config.json und config.local.json."""
+        self._ensure_package_importable()
+        from ApiProber.core.config import load_config
+
+        cfg_path = tmp_path / "config.json"
+        cfg_path.write_text('{}\n', encoding="utf-8")
+        (tmp_path / "config.local.json").write_text(
+            '{"auth": {"value": "file-secret"}}\n', encoding="utf-8"
+        )
+        monkeypatch.setenv("APIPROBER_AUTH_VALUE", "env-secret")
+        monkeypatch.setenv("APIPROBER_AUTH_TYPE", "api_key")
+
+        config = load_config(cfg_path)
+        assert config["auth"]["value"] == "env-secret"
+        assert config["auth"]["type"] == "api_key"
+
+
 class TestRobotsServerError:
     """Regressionstest: 5xx beim robots.txt-Abruf darf NICHT 'alles erlaubt' bedeuten."""
 

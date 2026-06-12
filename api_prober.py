@@ -185,11 +185,11 @@ def cmd_resume(args):
 
 def cmd_config(args):
     """Konfiguration anzeigen oder setzen."""
-    from ApiProber.core.config import load_config, save_config
-
-    config = load_config()
+    from ApiProber.core.config import (load_config, set_config_value,
+                                       SECRET_KEYS, ENV_AUTH_VALUE)
 
     if args.show:
+        config = load_config()
         print(json.dumps(config, indent=4, ensure_ascii=False))
         return 0
 
@@ -200,25 +200,24 @@ def cmd_config(args):
         # Typ-Konvertierung
         if value.lower() in ("true", "false"):
             value = value.lower() == "true"
-        elif value.isdigit():
-            value = int(value)
-        else:
+        elif key not in SECRET_KEYS:
             try:
-                value = float(value)
+                value = int(value)
             except ValueError:
-                pass  # bleibt String
+                try:
+                    value = float(value)
+                except ValueError:
+                    pass  # bleibt String
 
-        # Verschachtelte Keys mit Punkt-Notation
-        keys = key.split(".")
-        target = config
-        for k in keys[:-1]:
-            if k not in target or not isinstance(target[k], dict):
-                target[k] = {}
-            target = target[k]
-        target[keys[-1]] = value
+        target_path = set_config_value(key, value)
 
-        save_config(config)
-        print(f"Gesetzt: {key} = {value}")
+        if key in SECRET_KEYS:
+            # Secret nie auf der Konsole oder in der getrackten Datei zeigen
+            print(f"Gesetzt: {key} = ***  ->  {target_path.name} (gitignored)")
+            print(f"Hinweis: Empfohlen ist die Umgebungsvariable {ENV_AUTH_VALUE} --")
+            print("sie hat Vorrang vor allen Config-Dateien und landet nie auf der Platte.")
+        else:
+            print(f"Gesetzt: {key} = {value}  ->  {target_path.name}")
         return 0
 
     print("Verwendung: config --show | config --set KEY VALUE")
