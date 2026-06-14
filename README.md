@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="ApiProber_logo.jpg" alt="ApiProber" width="700">
-</p>
+![ApiProber](ApiProber_logo.jpg)
 
 # ApiProber -- Passive API Discovery and Documentation Tool
 
