@@ -352,6 +352,146 @@ class TestRobotsServerError:
         assert checker.is_allowed("/api") is True
 
 
+class TestResponseDrivenBudget:
+    """Regressionstest: HATEOAS-Discovery (Phase 6) respektiert max_requests.
+
+    Vorher hatte discover_from_responses keinen max_requests-Parameter und
+    folgte pro Runde beliebig vielen Links -- das Budget der anderen
+    Strategien wurde umgangen.
+    """
+
+    def _ensure_package_importable(self):
+        parent_dir = str(API_PROBER_DIR.parent)
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+
+    def test_stops_at_max_requests(self, monkeypatch):
+        self._ensure_package_importable()
+        from ApiProber.discovery import response_driven
+
+        # Jede Response liefert viele frische Links
+        monkeypatch.setattr(
+            response_driven, "extract_links_from_json",
+            lambda data, base: [f"/item/{i}" for i in range(50)]
+        )
+
+        class FakeResp:
+            status_code = 200
+
+        class FakeClient:
+            def __init__(self):
+                self.request_count = 0
+
+            def get(self, url):
+                self.request_count += 1
+                return FakeResp()
+
+        class FakeDB:
+            def get_endpoints(self, sid):
+                return [{"id": 1, "path": "/seed"}]
+
+            def get_responses(self, eid):
+                return [{"body_sample": '{"any": "thing"}'}]
+
+        client = FakeClient()
+        response_driven.discover_from_responses(
+            client, "https://example.invalid", FakeDB(), 1,
+            robots_checker=None, known_paths=set(),
+            max_depth=5, callback=None, max_requests=3
+        )
+        assert client.request_count <= 3, \
+            f"HATEOAS-Discovery sprengte das Budget: {client.request_count} > 3"
+
+
+class TestRobotsAppliesToAllSources:
+    """Regressionstest: robots.txt gilt auch fuer Endpoints aus einer
+    OpenAPI-Spec.
+
+    Vorher trug Phase 1 Spec-Endpoints ungeprueft ein; Phase 4 (Method-
+    Testing, inkl. POST/PUT/DELETE) und Phase 5 (Schema-Extraktion) fragten
+    sie dann ohne robots.txt-Pruefung an.
+    """
+
+    def _ensure_package_importable(self):
+        parent_dir = str(API_PROBER_DIR.parent)
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+
+    def test_phase4_5_skip_robots_disallowed_paths(self, tmp_path, monkeypatch):
+        self._ensure_package_importable()
+        from copy import deepcopy
+        from ApiProber.core.config import DEFAULT_CONFIG
+        from ApiProber.discovery import orchestrator as orch_mod
+
+        class FakeRobots:
+            crawl_delay = None
+            unavailable_status = None
+
+            def __init__(self, base_url, ua=""):
+                pass
+
+            def load(self):
+                return True, "User-agent: *\nDisallow: /private\n"
+
+            def is_allowed(self, path):
+                return not path.startswith("/private")
+
+        monkeypatch.setattr(orch_mod, "RobotsChecker", FakeRobots)
+
+        requested = []
+
+        class FakeResp:
+            def __init__(self):
+                self.status_code = 200
+                self.ok = True
+                self.headers = {}
+                self.content_type = "application/json"
+                self.body = '{"id": 1}'
+                self.error = ""
+                self.elapsed_ms = 1
+                self.method = "GET"
+
+        class FakeClient:
+            def __init__(self):
+                self.request_count = 0
+                self.delay_ms = 0
+
+            def get(self, url):
+                requested.append(url)
+                self.request_count += 1
+                return FakeResp()
+
+            def head(self, url):
+                requested.append(url)
+                self.request_count += 1
+                return FakeResp()
+
+            def request(self, url, method="GET"):
+                requested.append(url)
+                self.request_count += 1
+                return FakeResp()
+
+        config = deepcopy(DEFAULT_CONFIG)
+        config["db_path"] = str(tmp_path / "test.db")
+        config["strategies"] = []  # Phase 1-3 + 6 aus -- nur Phase 4/5 testen
+        config["delay_ms"] = 0
+
+        orch = orch_mod.ProbeOrchestrator(config)
+        orch.client = FakeClient()
+
+        base = "https://example.invalid"
+        sid = orch.db.upsert_service("example", base)
+        orch.db.upsert_endpoint(sid, "/public", methods=["GET"], discovered_by="openapi")
+        orch.db.upsert_endpoint(sid, "/private", methods=["GET"], discovered_by="openapi")
+
+        orch.probe(base)
+
+        assert not any("/private" in u for u in requested), \
+            f"robots-gesperrter Spec-Pfad wurde angefragt: {requested}"
+        assert any("/public" in u for u in requested), \
+            "erlaubter Pfad haette angefragt werden muessen"
+
+
 class TestApiProberExport:
     """Test: Export-Funktionen (konzeptionell)."""
 

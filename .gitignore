@@ -44,3 +44,6 @@ config.local.json
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Multi-Agent Lock-System (lokal, nie committen)
+LOCK*.txt

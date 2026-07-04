@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-07-04
+
+- Security/ethics: robots.txt is now honored for endpoints that came from an
+  OpenAPI/Swagger spec, too. Previously such endpoints were probed in the
+  method-testing and schema-extraction phases (including POST/PUT/DELETE with
+  `--test-all-methods`) without any robots.txt check.
+- Rate limiting: the response-driven (HATEOAS) discovery phase now respects the
+  `max_requests` budget. Previously it followed unbounded links per round and
+  could exceed the configured request limit.
+- Added regression tests for both (`test_smoke.py`): request-budget cap in
+  response-driven discovery and robots.txt enforcement across discovery sources.
+
 ## 2026-06-12
 
 - Updated the smoke-test workflow to `actions/checkout@v6` and `actions/setup-python@v6`.

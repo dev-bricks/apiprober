@@ -180,6 +180,11 @@ class ProbeOrchestrator:
             for ep in endpoints:
                 if self._check_limits(max_requests):
                     break
+                # robots.txt gilt auch fuer Endpoints aus einer OpenAPI-Spec
+                # (Phase 1 traegt sie ungeprueft ein) -- sonst wuerden hier
+                # sogar POST/PUT/DELETE an gesperrte Pfade gehen
+                if robots and not robots.is_allowed(ep["path"]):
+                    continue
                 method_info = test_methods(
                     self.client, base_url, ep["path"],
                     skip_destructive=skip_destructive
@@ -206,6 +211,8 @@ class ProbeOrchestrator:
                     break
                 methods = json.loads(ep.get("methods_json", "[]"))
                 if "GET" not in methods:
+                    continue
+                if robots and not robots.is_allowed(ep["path"]):
                     continue
                 url = f"{base_url}{ep['path']}"
                 resp = self.client.get(url)
@@ -238,7 +245,7 @@ class ProbeOrchestrator:
                 self.client, base_url, self.db, service_id,
                 robots_checker=robots, known_paths=known_paths,
                 max_depth=self.config.get("max_depth", 2),
-                callback=on_endpoint_found
+                callback=on_endpoint_found, max_requests=max_requests
             )
             self._process_results(service_id, results, "response_driven")
             print(f"  {len(results)} neue Endpoints entdeckt")

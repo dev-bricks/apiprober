@@ -9,7 +9,7 @@ from ..core.schema_extractor import extract_links_from_json
 
 def discover_from_responses(client, base_url, db, service_id,
                             robots_checker=None, known_paths=None,
-                            max_depth=2, callback=None):
+                            max_depth=2, callback=None, max_requests=None):
     """Entdeckt neue Endpoints durch Link-Following.
 
     Liest bestehende Responses aus der DB, extrahiert Links,
@@ -24,6 +24,9 @@ def discover_from_responses(client, base_url, db, service_id,
         known_paths: Set bekannter Pfade
         max_depth: Maximale Rekursionstiefe
         callback: Funktion(path, response)
+        max_requests: Maximale Gesamtzahl Requests (Client-Zaehler); die
+            HATEOAS-Runden folgen sonst unbegrenzt vielen Links und
+            sprengen das Budget der anderen Strategien.
 
     Returns:
         list: [(path, response), ...]
@@ -33,6 +36,8 @@ def discover_from_responses(client, base_url, db, service_id,
     all_results = []
 
     for depth in range(max_depth):
+        if max_requests and client.request_count >= max_requests:
+            break
         new_links = set()
 
         # Bekannte Endpoints durchgehen und Links aus deren Responses sammeln
@@ -60,6 +65,8 @@ def discover_from_responses(client, base_url, db, service_id,
         # Neue Links testen
         round_results = []
         for path in sorted(new_links):
+            if max_requests and client.request_count >= max_requests:
+                break
             if robots_checker and not robots_checker.is_allowed(path):
                 continue
 
