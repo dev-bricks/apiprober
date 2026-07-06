@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-06
+
+- Documentation: Created `README_de.md` containing a complete German translation.
+- Documentation: Added bilingual language selection links to the top of both `README.md` and `README_de.md`.
+- Documentation: Updated `llms.txt` metadata and `Last-checked` date to `2026-07-06`.
+
 ## 2026-07-04
 
 - Security/ethics: robots.txt is now honored for endpoints that came from an

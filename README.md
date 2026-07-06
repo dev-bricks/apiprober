@@ -2,6 +2,10 @@
   <img src="assets/banner_v2.svg" alt="ApiProber" width="100%" />
 </p>
 
+<p align="right">
+  <a href="README_de.md">🇩🇪 Deutsch</a> | <b>🇬🇧 English</b>
+</p>
+
 # ApiProber -- Passive API Discovery and Documentation Tool
 
 [![ApiProber smoke tests](https://github.com/dev-bricks/apiprober/actions/workflows/tests.yml/badge.svg)](https://github.com/dev-bricks/apiprober/actions/workflows/tests.yml)
