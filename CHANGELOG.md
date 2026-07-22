@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-22
+
+- Technical Hygiene: Verified test suite (21 passed, 1 skipped) and updated `llms.txt` `Last-checked` date to `2026-07-22`.
+
 ## 2026-07-06
 
 - Documentation: Created `README_de.md` containing a complete German translation.
