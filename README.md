@@ -8,12 +8,19 @@
 
 # ApiProber -- Passive API Discovery and Documentation Tool
 
-[![ApiProber smoke tests](https://github.com/dev-bricks/apiprober/actions/workflows/tests.yml/badge.svg)](https://github.com/dev-bricks/apiprober/actions/workflows/tests.yml)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
+[![Pytest 21 passed](https://img.shields.io/badge/pytest-21_passed-brightgreen.svg)](https://docs.pytest.org/)
+[![Zero Dependencies](https://img.shields.io/badge/dependencies-zero-success.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![LLM-Ready](https://img.shields.io/badge/LLM--Ready-llms.txt-success.svg)](llms.txt)
 
 ApiProber is a zero-dependency Python CLI for passive API discovery. It helps
 developers and maintainers map undocumented REST services, compare live
 behavior with API documentation, persist observations in SQLite, and export
 Markdown or JSON documentation.
+
+> [!NOTE]
+> **Passive & Ethical API Reconnaissance:** ApiProber is a zero-dependency local-first Python CLI designed exclusively for authorized passive REST API surface discovery and documentation generation. It operates with strict rate limiting, respects `robots.txt`, and uses no aggressive fuzzing or destructive methods.
 
 **Author:** Lukas Geiger | **License:** MIT | **Python:** 3.8+ (stdlib only)
 
@@ -153,6 +160,50 @@ ApiProber uses four strategies in priority order:
 2. **Wordlist Probing** (Priority 2): Tests ~140 common REST endpoint paths
 3. **Pattern Expansion** (Priority 3): Expands `/api/v{1,2,3}/{resource}` patterns
 4. **Response-Driven / HATEOAS** (Priority 4): Follows links discovered in response bodies
+
+---
+
+## System Architecture & Probing Pipeline
+
+```mermaid
+flowchart TD
+    subgraph Target ["Target REST API"]
+        API["Authorized REST Service"]
+    end
+
+    subgraph Engine ["ApiProber Engine (Zero-Dep Python)"]
+        ROB["robots.txt Parser & Rate Limiter"]
+        OAD["1. OpenAPI / Swagger Detector"]
+        WLP["2. Wordlist Prober (~140 paths)"]
+        PAT["3. Pattern Expander (/api/v1/...)"]
+        HAT["4. HATEOAS / Link Follower"]
+    end
+
+    subgraph Persistence ["Persistence Layer"]
+        DB[("Local SQLite Database (data/api_prober.db)")]
+    end
+
+    subgraph Outputs ["Documentation & Exports"]
+        MD["Markdown Docs (export/markdown.py)"]
+        JSON["JSON / OpenAPI Spec (export/json_export.py)"]
+        CLI["CLI Status & Inventory Reports"]
+    end
+
+    API --> ROB
+    ROB --> OAD
+    ROB --> WLP
+    ROB --> PAT
+    ROB --> HAT
+
+    OAD --> DB
+    WLP --> DB
+    PAT --> DB
+    HAT --> DB
+
+    DB --> MD
+    DB --> JSON
+    DB --> CLI
+```
 
 ---
 

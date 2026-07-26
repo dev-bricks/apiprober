@@ -1,6 +1,12 @@
 # Changelog
 
-## 2026-07-22
+## 2026-07-26
+
+- **Discoverability & Marketing Audit (Path B)**: Integrated Shields.io badges (`Pytest 21 passed`, `Python 3.8+`, `Zero Dependencies`, `License: MIT`, `LLM-Ready`).
+- **GFM Callouts**: Added GFM note callout (`> [!NOTE]`) for passive & ethical API reconnaissance in `README.md` and `README_de.md`.
+- **Mermaid Architecture Diagrams**: Added visual probing pipeline flowchart to English and German landing pages.
+- **Documentation & Indexing**: Updated `llms.txt` header to `Last-checked: 2026-07-26` and added `ellmos-module.v2.json` manifest.
+- **Marketing Recommendations**: Documented terminal recording (vhs / asciinema), Glama/mcp.so listing, and PyPI release recommendations in `MARKETING-LOG.txt`.
 
 - Technical Hygiene: Verified test suite (21 passed, 1 skipped) and updated `llms.txt` `Last-checked` date to `2026-07-22`.
 

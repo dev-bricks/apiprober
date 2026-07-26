@@ -1,0 +1,39 @@
+{
+  "schema": "ellmos.module.v2",
+  "id": "ApiProber",
+  "display_name": "ApiProber",
+  "category": "tools",
+  "kind": "tool",
+  "status": "released",
+  "visibility": "public",
+  "provides": [
+    "tool.api-probe",
+    "tool.openapi-discovery"
+  ],
+  "requires": [],
+  "optional": [],
+  "conflicts": [],
+  "surfaces": [
+    "library",
+    "cli"
+  ],
+  "state": {
+    "ownership": "none",
+    "location": "none"
+  },
+  "boundaries": {
+    "network": "listed",
+    "data": "application-defined",
+    "platforms": [
+      "windows",
+      "macos",
+      "linux"
+    ]
+  },
+  "source_of_truth": {
+    "type": "local-directory",
+    "path": ".",
+    "repository": null
+  },
+  "adapters": []
+}
