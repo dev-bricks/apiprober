@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner_v2.svg" alt="ApiProber" width="100%" />
+  <img src="assets/banner.png" alt="ApiProber" width="100%" />
 </p>
 
 <p align="right">
