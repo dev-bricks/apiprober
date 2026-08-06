@@ -13,6 +13,8 @@
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-zero-success.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![LLM-Ready](https://img.shields.io/badge/LLM--Ready-llms.txt-success.svg)](llms.txt)
+[![Ecosystem: dev-bricks](https://img.shields.io/badge/Ecosystem-dev--bricks-blue.svg)](https://github.com/dev-bricks)
+[![Part of open-bricks](https://img.shields.io/badge/open--bricks-umbrella-blueviolet.svg)](https://github.com/open-bricks)
 
 ApiProber is a zero-dependency Python CLI for passive API discovery. It helps
 developers and maintainers map undocumented REST services, compare live
@@ -21,6 +23,9 @@ Markdown or JSON documentation.
 
 > [!NOTE]
 > **Passive & Ethical API Reconnaissance:** ApiProber is a zero-dependency local-first Python CLI designed exclusively for authorized passive REST API surface discovery and documentation generation. It operates with strict rate limiting, respects `robots.txt`, and uses no aggressive fuzzing or destructive methods.
+
+> [!TIP]
+> **LLM / RAG Context Available:** A structured, LLM-optimized index of this repository is maintained in [`llms.txt`](llms.txt) for AI assistants and context windows.
 
 **Author:** Lukas Geiger | **License:** MIT | **Python:** 3.8+ (stdlib only)
 

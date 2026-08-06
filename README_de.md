@@ -13,11 +13,16 @@
 [![Zero Dependencies](https://img.shields.io/badge/Abh%C3%A4ngigkeiten-keine-success.svg)]()
 [![Lizenz: MIT](https://img.shields.io/badge/Lizenz-MIT-yellow.svg)](LICENSE)
 [![LLM-Ready](https://img.shields.io/badge/LLM--Ready-llms.txt-success.svg)](llms.txt)
+[![Ökosystem: dev-bricks](https://img.shields.io/badge/%C3%96kosystem-dev--bricks-blue.svg)](https://github.com/dev-bricks)
+[![Teil von open-bricks](https://img.shields.io/badge/open--bricks-umbrella-blueviolet.svg)](https://github.com/open-bricks)
 
 ApiProber ist ein abhängigkeitsfreies Python-CLI für passives API-Discovery. Es hilft Entwicklern und Maintainern, undokumentierte REST-Dienste zu kartografieren, das Live-Verhalten mit der API-Dokumentation zu vergleichen, Beobachtungen in SQLite zu persistieren und Markdown- oder JSON-Dokumentationen zu exportieren.
 
 > [!NOTE]
 > **Passives & Ethisches API-Probing:** ApiProber ist ein abhängigkeitsfreies Local-First Python CLI, das ausschließlich für die autorisierte passive REST-API-Oberflächenerkennung und Dokumentationsgenerierung entwickelt wurde. Es arbeitet mit striktem Rate-Limiting, beachtet `robots.txt` und nutzt keinerlei fuzzen oder destruktiven Methoden.
+
+> [!TIP]
+> **LLM / RAG Kontext verfügbar:** Ein strukturierter, für LLMs optimierter Index dieses Repositories wird in [`llms.txt`](llms.txt) für KI-Assistenten und Kontextfenster bereitgestellt.
 
 **Autor:** Lukas Geiger | **Lizenz:** MIT | **Python:** 3.8+ (nur Standardbibliothek)
 

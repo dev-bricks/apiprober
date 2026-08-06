@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-08-06
+
+- **Discoverability & Marketing Audit (Path B)**: Updated `llms.txt` `Last-checked` date to `2026-08-06`. Extended `README.md` and `README_de.md` with Ecosystem (`dev-bricks`) and Umbrella (`open-bricks`) Shields.io badges as well as GFM RAG callout tips for `llms.txt`. Verified test suite (21 passed, 1 skipped).
+
 ## 2026-07-26
 
 - **Discoverability & Marketing Audit (Path B)**: Integrated Shields.io badges (`Pytest 21 passed`, `Python 3.8+`, `Zero Dependencies`, `License: MIT`, `LLM-Ready`).
