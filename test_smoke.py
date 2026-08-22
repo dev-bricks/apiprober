@@ -534,6 +534,19 @@ class TestApiProberDocumentation:
         assert "ApiProber" in content or "API Prober" in content
 
 
+class TestPackagingMetadata:
+    """Regressionstest für den PEP-639-Lizenzvertrag."""
+
+    def test_license_metadata_uses_spdx_and_includes_license_file(self):
+        """MIT bleibt explizit, maschinenlesbar und im Paket enthalten."""
+        pyproject = (API_PROBER_DIR / "pyproject.toml").read_text(encoding="utf-8")
+
+        assert 'requires = ["setuptools>=77.0.3", "setuptools-scm"]' in pyproject
+        assert 'license = "MIT"' in pyproject
+        assert 'license-files = ["LICENSE"]' in pyproject
+        assert "License ::" not in pyproject
+
+
 # ============================================================================
 #  MAIN (für direktes Ausführen)
 # ============================================================================
