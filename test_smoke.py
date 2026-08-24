@@ -546,6 +546,18 @@ class TestPackagingMetadata:
         assert 'license-files = ["LICENSE"]' in pyproject
         assert "License ::" not in pyproject
 
+    def test_wordlists_are_explicit_data_not_namespace_package(self):
+        """Wordlists bleiben Paketdaten, ohne implizite Paketentdeckung."""
+        pyproject = (API_PROBER_DIR / "pyproject.toml").read_text(encoding="utf-8")
+        setuptools_config = pyproject.split(
+            "[tool.setuptools]", 1
+        )[1].split("[tool.setuptools.package-data]", 1)[0]
+        package_data = pyproject.split("[tool.setuptools.package-data]", 1)[1]
+
+        assert "include-package-data = false" in setuptools_config
+        assert '"ApiProber.wordlists"' not in setuptools_config
+        assert '"wordlists/*.txt"' in package_data
+
 
 # ============================================================================
 #  MAIN (für direktes Ausführen)

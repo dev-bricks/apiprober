@@ -37,6 +37,7 @@ Issues = "https://github.com/dev-bricks/apiprober/issues"
 apiprober = "ApiProber.api_prober:main"
 
 [tool.setuptools]
+include-package-data = false
 package-dir = {"ApiProber" = "."}
 packages = [
     "ApiProber",
